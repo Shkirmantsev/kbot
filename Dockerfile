@@ -6,6 +6,7 @@ COPY . .
 RUN make build
 
 FROM scratch
+ENV TELE_TOKEN=
 WORKDIR /
 COPY --from=builder /go/src/app/kbot .
 COPY --from=alpine:3.17.3 /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/

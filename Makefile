@@ -43,6 +43,10 @@ else ifeq ($(TARGETOS),macos)
 	ARCH := $(MACOS_TARGET_ARCHITECTURE)
 endif
 
+ifeq ($(TARGETARCH),not_set)
+	TARGETARCH := ${ARCH}
+endif
+
 format:
 	gofmt -s -w ./
 
@@ -75,7 +79,7 @@ else ifeq ($(TARGETOS),macos)
 	$(MAKE) darwin
 endif
 
-image:	
+image:
 	docker build --build-arg TARGETARCH=${TARGETARCH} --build-arg TARGETOS=${TARGETOS} -t ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH} .
 
 push:
