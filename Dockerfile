@@ -1,4 +1,4 @@
-FROM golang:1.20 AS builder
+FROM quay.io/projectquay/golang:1.20 AS builder
 ARG TARGETOS
 ARG TARGETARCH
 WORKDIR /go/src/app

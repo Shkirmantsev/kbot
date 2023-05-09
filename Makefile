@@ -47,6 +47,8 @@ ifeq ($(TARGETARCH),not_set)
 	TARGETARCH := ${ARCH}
 endif
 
+IMAGE_TAG := ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH}
+
 format:
 	gofmt -s -w ./
 
@@ -88,3 +90,4 @@ push:
 clean:
 	rm -rf kbot
 	rm -rf LICENSE
+	docker rmi ${IMAGE_TAG}
