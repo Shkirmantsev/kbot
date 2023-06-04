@@ -1,4 +1,5 @@
-APP ?=$(shell basename $(shell git remote get-url origin))
+GIT_URL=$(shell git remote get-url origin)
+APP ?= $(shell basename $(GIT_URL) | sed 's/\.git$$//')
 REGISTRY ?= gcr.io/shkirmantsev
 VERSION ?= $(shell git describe --tags --abbrev=0)-$(shell git rev-parse --short HEAD)
 
