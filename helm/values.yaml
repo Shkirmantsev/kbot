@@ -3,19 +3,15 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
-
 image:
   repository: shkirmantsev
   # Overrides the image tag whose default is the chart appVersion
-  tag: "v1.0.4-185c9e1"
+  tag: "v1.0.7-5dba665"
   arch: "amd64"
-
-
 secret:
   name: "kbot"
   env: "TELE_TOKEN"
   tokenKey: token
   tokenName: TELE_TOKEN
-
 securityContext:
   privileged: true
