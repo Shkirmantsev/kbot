@@ -46,6 +46,8 @@ jobs:
           git config user.email github-actions@github.com
           git commit -am "update version $VERSION"
           git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.KBOT_ACTIONS_ACCESS_TOKEN }}
 
 
 
