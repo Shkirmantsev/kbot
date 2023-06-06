@@ -1,0 +1,97 @@
+name: KBOT-CICD
+
+on:
+  push:
+    branches:
+      - 'develop'
+
+env:
+  REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+  TARGETOS: "linux"
+  TARGETARCH: "amd64"
+
+jobs:
+  check_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      author_name: ${{ steps.check_commit.outputs.author_name }}
+      committer_name: ${{ steps.check_commit.outputs.committer_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Check commit
+        id: check_commit
+        run: |
+          AUTHOR_NAME=$(git show -s --format=%an HEAD)
+          COMMITTER_NAME=$(git show -s --format=%cn HEAD)
+          echo "::set-output name=author_name::${AUTHOR_NAME}"
+          echo "::set-output name=committer_name::${COMMITTER_NAME}"
+  ci:
+    name: CI
+    needs: check_commit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run test
+        run: make test
+      
+      - name: Docker hub login
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Setup gcloud CLI
+        uses: 'google-github-actions/auth@v1'
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Authenticate to GCR
+        run: |-
+          gcloud auth configure-docker -q
+
+      - name: Build and push
+        env:
+          APP: "kbot"
+          REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+        run: make image push
+  cd:
+    name: CD
+    needs: [ci, check_commit]
+    runs-on: ubuntu-latest
+    # this will prevent the job from running if the commit author or committer is 'github-actions'
+    if: needs.check_commit.outputs.author_name != 'github-actions' && needs.check_commit.outputs.committer_name != 'github-actions'
+    steps:
+      - name: Checkout CD
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.KBOT_ACTIONS_ACCESS_TOKEN }}
+
+      - run: echo "VERSION=$(git describe --tags --abbrev=0)-$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+
+      - uses: mikefarah/yq@master
+        with:
+          cmd: |
+             yq -i '.image.repository=strenv(REGISTRY)' helm/values.yaml
+             yq -i '.image.tag=strenv(VERSION)' helm/values.yaml
+             yq -i '.image.os=strenv(TARGETOS)' helm/values.yaml
+             yq -i '.image.arch=strenv(TARGETARCH)' helm/values.yaml
+
+      - run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git remote set-url origin https://x-access-token:${{ env.GITHUB_TOKEN }}@github.com/Shkirmantsev/kbot.git
+          git commit -am "update version $VERSION"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.KBOT_ACTIONS_ACCESS_TOKEN }}
+
+
+
+
