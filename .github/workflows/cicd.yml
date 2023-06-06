@@ -3,8 +3,24 @@ name: KBOT-CICD
 on: push
 
 jobs:
+  check_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      author_name: ${{ steps.check_commit.outputs.author_name }}
+      committer_name: ${{ steps.check_commit.outputs.committer_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Check commit
+        id: check_commit
+        run: |
+          AUTHOR_NAME=$(git show -s --format=%an HEAD)
+          COMMITTER_NAME=$(git show -s --format=%cn HEAD)
+          echo "::set-output name=author_name::${AUTHOR_NAME}"
+          echo "::set-output name=committer_name::${COMMITTER_NAME}"
   ci:
     name: CI
+    needs: check_commit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,8 +44,10 @@ jobs:
         run: make image push
   cd:
     name: CD
-    needs: ci
+    needs: [ci, check_commit]
     runs-on: ubuntu-latest
+    # this will prevent the job from running if the commit author or committer is 'github-actions'
+    if: needs.check_commit.outputs.author_name != 'github-actions' && needs.check_commit.outputs.committer_name != 'github-actions'
     steps:
       - name: Checkout CD
         uses: actions/checkout@v3
