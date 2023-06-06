@@ -46,7 +46,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       
       - name: Setup gcloud CLI
-        uses: google-github-actions/setup-gcloud@main
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           service_account_key: ${{ secrets.GCP_SA_KEY }}
@@ -54,7 +54,7 @@ jobs:
 
       - name: Authenticate to GCR
         run: |-
-          gcloud --quiet auth configure-docker
+          gcloud auth configure-docker -q
 
       - name: Build and push
         env:
