@@ -5,6 +5,11 @@ on:
     branches:
       - 'develop'
 
+env:
+  REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
+  TARGETOS: "linux"
+  TARGETARCH: "amd64"
+
 jobs:
   check_commit:
     runs-on: ubuntu-latest
@@ -39,11 +44,22 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@master
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
+
+      - name: Authenticate to GCR
+        run: |-
+          gcloud --quiet auth configure-docker
 
       - name: Build and push
         env:
           APP: "kbot"
-          REGISTRY: ${{ secrets.DOCKERHUB_USERNAME }}
+          REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
         run: make image push
   cd:
     name: CD
@@ -62,7 +78,11 @@ jobs:
 
       - uses: mikefarah/yq@master
         with:
-          cmd: yq -i '.image.tag=strenv(VERSION)' helm/values.yaml
+          cmd: |
+             yq -i '.image.repository=strenv(REGISTRY)' helm/values.yaml
+             yq -i '.image.tag=strenv(VERSION)' helm/values.yaml
+             yq -i '.image.os=strenv(TARGETOS)' helm/values.yaml
+             yq -i '.image.arch=strenv(TARGETARCH)' helm/values.yaml
 
       - run: |
           git config user.name github-actions
