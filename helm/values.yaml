@@ -16,3 +16,5 @@ secret:
   tokenName: TELE_TOKEN
 securityContext:
   privileged: true
+
+imagePullSecrets: []
