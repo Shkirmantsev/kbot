@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: gcr.io/shkirmantsev
   # Overrides the image tag whose default is the chart appVersion
-  tag: "v1.0.7-d8ece86"
+  tag: "v1.0.7-330a319"
   os: "linux"
   arch: "amd64"
 secret:
@@ -16,4 +16,5 @@ secret:
   tokenName: TELE_TOKEN
 securityContext:
   privileged: true
-imagePullSecrets: []
+imagePullSecrets:
+  - name: gcr-json-key
