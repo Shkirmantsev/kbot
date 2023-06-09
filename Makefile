@@ -48,7 +48,7 @@ ifeq ($(TARGETARCH),not_set)
 	TARGETARCH := ${ARCH}
 endif
 
-IMAGE_TAG := ${REGISTRY}/${APP}:${VERSION}-${TARGETARCH}
+IMAGE_TAG := ${REGISTRY}/${APP}:${VERSION}-${TARGETOS}-${TARGETARCH}
 
 format:
 	gofmt -s -w ./
