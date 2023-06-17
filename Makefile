@@ -19,7 +19,14 @@ endif
 
 ifeq ($(TARGETARCH),not_set)
 	ifeq ($(TARGETOS),linux)
-		LINUX_TARGET_ARCHITECTURE := $(shell dpkg --print-architecture)
+		LARCH := $(shell uname -m)
+		ifeq ($(LARCH),x86_64)
+    		LINUX_TARGET_ARCHITECTURE := amd64
+		else ifeq ($(LARCH),aarch64)
+  			LINUX_TARGET_ARCHITECTURE := arm64
+		else
+			LINUX_TARGET_ARCHITECTURE := $(LARCH)
+		endif
 	endif
 else
 	LINUX_TARGET_ARCHITECTURE := $(TARGETARCH)

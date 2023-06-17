@@ -1,0 +1,90 @@
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "main"'
+      when: always
+    - when: never
+
+variables:
+  GIT_REPO: "https://github.com/Shkirmantsev/kbot"
+  BRANCH: "develop"
+  REGISTRY: "shkirmantsev"
+  TARGETOS: $TARGETOS
+
+stages:
+    - test
+    - build&push&clean
+
+run_tests:
+    stage: test
+    tags:
+      - runneronlinux
+    image: quay.io/projectquay/golang:1.20
+    script:
+        - echo 'run tests from Makefile'
+        - make test
+
+build_push_clean_images_linux:
+    tags:
+      - runneronlinux
+    stage: build&push&clean
+    image: docker:24.0.2-alpine3.18
+    services:
+      - docker:24.0.2-dind-alpine3.18
+    variables:
+      DOCKER_TLS_CERTDIR: ""    
+    before_script:
+      - apk update && apk add git && apk add make
+      - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+    script:
+        - echo 'build images from Makefile'
+        - make image TARGETOS=linux TARGETARCH=amd64
+        - make push TARGETOS=linux TARGETARCH=amd64
+        - make clean TARGETOS=linux TARGETARCH=amd64
+    rules:
+      - if: '$TARGETOS == "linux" || $TARGETOS == "all"'
+        when: always
+      - when: never
+
+build_push_clean_images_windows:
+    tags:
+      - runneronwindows
+    stage: build&push&clean
+    image: docker:24.0.2-alpine3.18
+    services:
+      - docker:24.0.2-dind-alpine3.18
+    variables:
+      DOCKER_TLS_CERTDIR: ""    
+    before_script:
+      - apk update && apk add git && apk add make
+      - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+    script:
+        - echo 'build images from Makefile'
+        - make image TARGETOS=windows
+        - make push TARGETOS=windows
+        - make clean TARGETOS=windows
+    rules:
+      - if: '$TARGETOS == "windows" || $TARGETOS == "all"'
+        when: always
+      - when: never
+
+build_push_clean_images_macos:
+    tags:
+      - runneronmacos
+    stage: build&push&clean
+    image: docker:24.0.2-alpine3.18
+    services:
+      - docker:24.0.2-dind-alpine3.18
+    variables:
+      DOCKER_TLS_CERTDIR: ""    
+    before_script:
+      - apk update && apk add git && apk add make
+      - docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
+    script:
+        - echo 'build images from Makefile'
+        - make image TARGETOS=darwin
+        - make push TARGETOS=darwin
+        - make clean TARGETOS=darwin
+    rules:
+      - if: '$TARGETOS == "darwin" || $TARGETOS == "all"'
+        when: always
+      - when: never
