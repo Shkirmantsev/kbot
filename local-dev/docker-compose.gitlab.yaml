@@ -1,0 +1,87 @@
+version: '3'
+services:
+  gitlab-server:
+    image: 'gitlab/gitlab-ee:16.0.4-ee.0'
+    restart: always
+    hostname: gitlab-server
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab-server'
+    #     # gitlab_rails['gitlab_shell_ssh_port'] = 22
+    ports:
+      - '80:80'
+      - '443:443'
+      - '22:22'
+    volumes:
+      - gitlab-config:/etc/gitlab
+      - gitlab-logs:/var/log/gitlab
+      - gitlab-data:/var/opt/gitlab
+    shm_size: '1g'
+    networks:
+      - gitlab_network
+
+  gitlab-runner:
+    image: 'gitlab/gitlab-runner:latest'
+    restart: always
+    volumes:
+      - gitlab-runner-config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gitlab_network
+
+volumes:
+  gitlab-config:
+  gitlab-logs:
+  gitlab-data:
+  gitlab-runner-config:
+
+networks:
+  gitlab_network:
+
+# ADD gitlab-server to etc/hosts
+
+## After the services ware started with docker-compose up, we need to register the runner with your GitLab server.
+#One can do that by executing the following commands:
+# docker-compose exec gitlab-runner gitlab-runner register
+
+#gitlab-runner register \
+#  --non-interactive \
+#  --url http://gitlab-server \
+#  --registration-token <REGISTRATION_TOKEN_FOR_PROJECT_FROM_GITLAB> \
+#  --description newdocker \
+#  --tag-list newdocker \
+#  --executor docker \
+#  --docker-image quay.io/projectquay/golang:1.20 \
+#  --run-untagged true \
+#  --locked false \
+#  --docker-network-mode local-dev_gitlab_network
+
+# This command will start an interactive prompt that will guide you through the process of registering the runner.
+
+# This is the URL of your GitLab server (http://gitlab-server/ in our case).
+
+# The token for your runner:
+# This can be obtained from your GitLab server. You can create a new runner in the GitLab web interface, under the
+# project's Settings -> CI/CD section.
+# Expand the Runners section to find it.
+
+# A description: You can enter any text here to describe the runner.
+
+# Tags: You can enter any tags you want to assign to the runner (useful for jobs that should only run on specific runners)
+
+# The executor: Enter 'docker'.
+
+# Remember, the runner is project-specific unless you make it a shared runner in the GitLab admin interface.
+# For a shared runner, you need to obtain the token from the Admin Area -> Runners section in the web interface.
+
+#The Docker image: You can use alpine:alpine:3.18.2 for a minimal image.
+
+#docker-compose -f ./local-dev/docker-compose.gitlab.yaml up --build --force-recreate
+
+##### GET FIRST PASSWORD: ###############
+# sudo docker exec -it local-dev_gitlab-server_1 grep 'Password:' /etc/gitlab/initial_root_password
+
+## !!!! after runner registration edit runner conntainer with: "nano /etc/gitlab-runner/config.toml"
+# -->> last line in [runners.docker] --> network_mode = "local-dev_gitlab_network" and privileged = true (was set to false)
+
+
