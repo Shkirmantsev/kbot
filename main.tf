@@ -1,5 +1,5 @@
 module "tls_private_key" {
-  source = "https://github.com/den-vasyliev/tf-hashicorp-tls-keys"
+  source = "github.com/den-vasyliev/tf-hashicorp-tls-keys"
 
   algorithm   = var.TLS_ALGORITHM
   ecdsa_curve = var.TLS_EDCSA_CURVE
@@ -24,6 +24,6 @@ module "flux_bootstrap" {
   source            = "github.com/den-vasyliev/tf-fluxcd-flux-bootstrap"
   github_repository = "${var.GITHUB_OWNER}/${var.FLUX_GITHUB_REPO}"
   private_key       = module.tls_private_key.private_key_pem
-  config_path       = module.gke_cluster.kubeconfig
+  config_path       = module.kind_cluster.kubeconfig
   github_token      = var.GITHUB_TOKEN
 }
