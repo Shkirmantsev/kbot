@@ -7,6 +7,6 @@ output "public_key_openssh" {
   value = module.tls_private_key.public_key_openssh
 }
 
-output "cluster_kubeconfig" {
-  value = module.kind_cluster.kubeconfig
-}
+# output "cluster_kubeconfig" {
+#   value = module.kind_cluster.kubeconfig
+# }
