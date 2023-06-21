@@ -1,5 +1,5 @@
 module "tls_private_key" {
-  source = "https://github.com/den-vasyliev/tf-hashicorp-tls-keys"
+  source = "github.com/den-vasyliev/tf-hashicorp-tls-keys"
 
   algorithm   = var.TLS_ALGORITHM
   ecdsa_curve = var.TLS_EDCSA_CURVE
