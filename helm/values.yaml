@@ -6,7 +6,7 @@ replicaCount: 1
 image:
   repository: gcr.io/shkirmantsev
   # Overrides the image tag whose default is the chart appVersion
-  tag: "v1.0.9-93cf4a1"
+  tag: "v1.0.11-8c2d0c8"
   os: "linux"
   arch: "amd64"
 secret:
