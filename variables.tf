@@ -12,3 +12,15 @@ variable "FLUX_GITHUB_REPO" {
   description = "The name of the Git repository to be created (for flux configuration)"
   type        = string
 }
+
+variable "TLS_ALGORITHM" {
+  description = "The algorithm to use for the private key."
+  default     = "ECDSA"
+  type        = string
+}
+
+variable "TLS_EDCSA_CURVE" {
+  description = "The curve to use for ECDSA"
+  default     = "P256"
+  type        = string
+}
