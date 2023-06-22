@@ -25,7 +25,7 @@ run_tests:
 
 build_push_clean_images_linux:
     tags:
-      - runneronlinux
+      - linux
     stage: build&push&clean
     image: docker:24.0.2-alpine3.18
     services:
@@ -47,7 +47,7 @@ build_push_clean_images_linux:
 
 build_push_clean_images_windows:
     tags:
-      - runneronwindows
+      - windows
     stage: build&push&clean
     image: docker:24.0.2-alpine3.18
     services:
@@ -69,7 +69,7 @@ build_push_clean_images_windows:
 
 build_push_clean_images_macos:
     tags:
-      - runneronmacos
+      - saas-macos-medium-m1
     stage: build&push&clean
     image: docker:24.0.2-alpine3.18
     services:
