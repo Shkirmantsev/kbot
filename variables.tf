@@ -54,20 +54,3 @@ variable "TLS_EDCSA_CURVE" {
   default     = "P256"
   type        = string
 }
-
-variable "config_host" {
-  type        = string
-  default     = "gke"
-  description = "The url for gke"
-}
-
-variable "config_ca" {
-  type        = string
-  default     = "ca"
-  description = "The ca for gke"
-}
-
-variable "GKE_TOKEN" {
-  type        = string
-  description = "The token for gke"
-}
