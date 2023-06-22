@@ -46,6 +46,34 @@ export GITHUB_TOKEN=$GITHUB_TOKEN
 export TF_VAR_GITHUB_TOKEN=$GITHUB_TOKEN
 ```
 
+######## if cloud shell ############
+
+```shell
+PROJECT_ID=shkirmantsev
+```
+
+```shell
+SA_EMAIL="github-authentication-by-gcr@shkirmantsev.iam.gserviceaccount.com"
+```
+
+``` shell
+mkdir secrets
+```
+
+```shell
+gcloud iam service-accounts keys create ./secrets/gcr-token.json \
+  --iam-account $SA_EMAIL \
+  --project $PROJECT_ID
+```
+
+```shell
+export GCR_JSON_TOKEN="$(cat ./secrets/gcr-token.json)"
+```
+```shell
+export TF_VAR_GCR_JSON_TOKEN=$GCR_JSON_TOKEN
+```
+###################################
+
 #### Deploy terraform
 
 ```bash
@@ -86,14 +114,14 @@ spec:
   url: https://github.com/shkirmantsev/kbot
 ```
 
-3) Pass secrets to demo namespace (in next releases will be automatically and declarative):
+3) Pass secrets to demo namespace (For your email and json. in next releases will be automatically and declarative):
 
 ```shell
 kubectl create secret docker-registry regcred -n demo \
 --docker-server=gcr.io \
 --docker-username=_json_key \
---docker-password=$YOUR_GCR_JSON_TOKEN \
---docker-email=your-email-for-gcr@gmail.com
+--docker-password=$GCR_JSON_TOKEN \
+--docker-email=shkirmntsev@gmail.com
 ```
 
 ```shell
