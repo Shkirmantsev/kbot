@@ -149,3 +149,9 @@ https://t.me/shkirmantsev_bot
 - ```/start```
 - ```/stop```
 - ```/start hello```
+
+## Clean Resources(in shell):
+
+```shell
+terraform destroy
+```
