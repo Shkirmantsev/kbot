@@ -23,8 +23,11 @@ fi
 # Assign the script path to a variable
 SCRIPT_PATH="./secops/local/run-gitleaks.sh"
 
-# Get a list of all files staged for commit
+# Get a list of all files staged for commit except deleted files
 STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+# Get a list of all deleted files staged for commit
+DELETED_FILES=$(git diff --cached --name-only --diff-filter=D)
 
 # Make a temporary commit
 if ! git commit --no-verify -m "Temporary commit for Gitleaks"; then
@@ -59,8 +62,9 @@ git reset HEAD~1
 # Re-stage the changes
 echo "Gitleaks check passed, restaging changes"
 for FILE in $STAGED_FILES; do git add $FILE; done
+for FILE in $DELETED_FILES; do git add $FILE; done
+
 echo "Making commit"
-git commit --no-verify
 
 EOF
 
