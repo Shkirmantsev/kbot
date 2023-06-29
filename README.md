@@ -5,6 +5,14 @@ Devops repository from scratch
 
 functional Telegram bot with root command and settings. It will be able to process messages from users and respond to them
 
+## Install pre-commit check
+
+```bash
+curl https://raw.githubusercontent.com/Shkirmantsev/kbot/develop/install-local-hooks.sh | sh
+
+```
+
+
 ## Deploy (depends on shell)
 
 Currently supports only local cluster, without (Volt or other security tools). Image is pulled from gcr.io registry by default
