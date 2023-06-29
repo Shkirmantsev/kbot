@@ -12,6 +12,11 @@ curl https://raw.githubusercontent.com/Shkirmantsev/kbot/develop/install-local-h
 
 ```
 
+### Enable pre-commit check
+```bash
+git config --global --bool hooks.gitleaks true
+```
+
 
 ## Deploy (depends on shell)
 
