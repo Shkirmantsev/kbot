@@ -32,8 +32,14 @@ gcloud auth login
 ```
 
 ```bash
+gcloud config set project shkirmantsev
+```
+
+```bash
 export TF_VAR_GITHUB_OWNER=<owner>
 ```
+
+## In Google Cloud Shell, clone reposytory (use SSH or token), then:
 
 ```bash
 read -s TELE_TOKEN
@@ -85,9 +91,12 @@ export GCR_JSON_TOKEN="$(cat ./secrets/gcr-token.json)"
 ```shell
 export TF_VAR_GCR_JSON_TOKEN=$GCR_JSON_TOKEN
 ```
-###################################
+------
 
-#### Deploy terraform
+### Remove "gke-workload-identity" and "kms" modules from main.tf from in cloned project.
+
+### Deploy terraform.
+
 
 ```bash
 terraform init
@@ -99,6 +108,10 @@ terraform validate
 
 ```bash
 terraform apply
+```
+
+```bash
+gcloud container clusters get-credentials main --zone us-central1-c --project shkirmantsev
 ```
 
 #### Create namespace with declarative approach:
@@ -113,7 +126,7 @@ metadata:
     name: demo
 ```
 
-2) add in kbot-flux-gitops-config repo -> clusters -> demo -> kbor-gr.yaml (source repository):
+2) add in kbot-flux-gitops-config repo -> clusters -> demo -> kbot-gr.yaml (source repository, after commit wait 2 min):
 ```yaml
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: GitRepository
@@ -137,6 +150,7 @@ kubectl create secret docker-registry regcred -n demo \
 --docker-email=shkirmntsev@gmail.com
 ```
 
+(Optional, if not use kms and wmi):
 ```shell
 kubectl create secret generic kbot --from-literal=token=${TELE_TOKEN} --namespace=demo
 ```
@@ -165,7 +179,90 @@ spec:
 kubectl patch deployment kbot  -n demo --type='json' -p='[{"op": "add", "path": "/spec/template/spec/imagePullSecrets", "value":[{"name": "regcred"}]}]'
 ```
 
-6) If pods were not started correctly, then remove they (flux will recreate pods automatically)
+6) Add back the "gke-workload-identity" and "kms" modules in main file (see original "main.tf")
+7) Add in kbot-flux-gitops-config repo -> clusters/flux-system/sa-patch.yaml:
+
+```yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kustomize-controller
+  namespace: flux-system
+  annotations:
+    iam.gke.io/gcp-service-account: kustomize-controller@shkirmantsev.iam.gserviceaccount.com
+```
+8) Add in kbot-flux-gitops-config repo -> clusters/flux-system/sops-patch.yaml:
+  
+```yaml
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: ./clusters
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+  decryption:
+    provider: sops
+```
+
+9) Add in kbot-flux-gitops-config repo -> clusters/flux-system/kustomization.yaml:
+  
+```yaml
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+resources:
+- gotk-components.yaml
+- gotk-sync.yaml
+patches:
+- path: sops-patch.yaml
+  target: 
+    kind: Kustomization
+- path: sa-patch.yaml
+  target:
+    kind: ServiceAccount
+    name: kustomize-controller
+```
+
+
+
+```bash
+terraform init
+```
+
+```bash
+terraform validate
+```
+
+```bash
+terraform apply
+```
+
+10) Install sops
+
+``` bash
+wget https://github.com/getsops/sops/releases/download/v3.7.3/sops-v3.7.3.linux.amd64
+chmod +x sops-v3.7.3.linux.amd64
+mv sops-v3.7.3.linux.amd64 sops
+```
+
+11) Create secret ("secret-enc.yaml") and copy to file in flux "kbot-flux-gitops-config" Repository clusters/demo/secret-enc.yaml
+
+```shell
+kubectl create secret generic kbot --from-literal=token=$TELE_TOKEN --namespace=demo --dry-run=client -o yaml > secret.yaml
+```
+
+```yaml
+./sops --encrypt --gcp-kms projects/shkirmantsev/locations/global/keyRings/sops-flux/cryptoKeys/sops-key-flux secret.yaml > secret-enc.yaml
+```
+
+
+
+If pods were not started correctly, then remove they (flux will recreate pods automatically)
 
 ```shell
 kubectl get pods -n demo
